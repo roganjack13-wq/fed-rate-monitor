@@ -29,7 +29,12 @@
 5. **Settings → Pages → Build and deployment → Source** 選 **GitHub Actions**。
 6. **Actions** 分頁 → 「更新利率機率」→ **Run workflow** 跑第一次。之後每 10 分鐘自動執行，儀表板網址是 `https://<你的帳號>.github.io/<repo 名稱>/`。
 
-注意：GitHub 的排程常延遲 10–30 分鐘，所以雲端版的通知會比本機版晚一點。公開 repo 60 天沒有任何活動時 GitHub 會停用排程；這個 workflow 每次執行都會更新 `state` 分支，正常運作下不會被停用。
+注意：GitHub 的排程是「盡力而為」，常延遲 10–30 分鐘，新建的 repo 有時甚至好幾個小時都不會觸發，所以雲端版的通知會比本機版晚一點。如果你有一台 24 小時開機、能 `git push` 到這個 repo 的電腦，可以定時執行下面這行來確保每 10 分鐘更新（把 main 的最新 commit 推到 `tick` 分支，GitHub 收到推送就會立刻執行）：
+
+```
+git fetch -q origin main && git push -q --force origin $(git commit-tree "origin/main^{tree}" -p origin/main -m tick):refs/heads/tick
+```
+公開 repo 60 天沒有任何活動時 GitHub 會停用排程；這個 workflow 每次執行都會更新 `state` 分支，正常運作下不會被停用。
 
 ## 安裝方式二：Windows 本機版（通知最準時，電腦要開著）
 
