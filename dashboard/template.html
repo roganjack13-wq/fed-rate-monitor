@@ -61,7 +61,7 @@ button:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-vi
 .ov-nav button { font: inherit; font-size: 18px; line-height: 1; width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
   background: var(--raise); color: var(--ink-2); cursor: pointer; }
 .ov-nav button:hover { color: var(--ink); }
-.ov-strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(232px, 1fr); gap: 10px; overflow-x: auto;
+.ov-strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(252px, 1fr); gap: 10px; overflow-x: auto;
   scroll-snap-type: x mandatory; padding-bottom: 6px; scrollbar-width: thin; }
 .ov-card { scroll-snap-align: start; background: var(--raise); border: 1px solid var(--border); border-radius: 10px; padding: 12px 12px 10px;
   display: flex; flex-direction: column; gap: 8px; cursor: pointer; text-align: left; font: inherit; color: inherit; min-width: 0; }
@@ -78,6 +78,10 @@ button:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-vi
 .ov-cols .v.hi { color: var(--ink); }
 .ov-bar { display: flex; gap: 2px; height: 8px; }
 .ov-bar span { border-radius: 2px; min-width: 2px; }
+.ov-lead { display: flex; align-items: center; gap: 10px; padding: 2px 0 8px; border-bottom: 1px solid var(--border); }
+.ov-lead .big { font-size: 32px; font-weight: 700; line-height: 1; letter-spacing: -0.01em; }
+.ov-lead .what { font-size: 12px; color: var(--ink-2); line-height: 1.45; white-space: nowrap; }
+.ov-lead .what b { color: var(--ink); font-size: 13px; }
 .ov-rows { display: flex; flex-direction: column; gap: 5px; flex: 1; }
 .ov-row { display: grid; grid-template-columns: 58px minmax(0, 1fr) 46px; align-items: center; gap: 8px; font-size: 12px; }
 .ov-row .nm { color: var(--ink-2); white-space: nowrap; }
@@ -944,6 +948,11 @@ footer p { margin: 0; }
         "aria-pressed": String(m === ST.meeting), "aria-label": fmtDay(m) + " 會議，" + GROUPS.map(function (x) { return x.name + " " + pct0(g[x.key]); }).join("，") });
       card.appendChild(el("div", { cls: "ov-date" }, el("b", { text: m.slice(0, 4) + "/" + m.slice(5).replace("-", "/") }),
         el("span", { cls: i === 0 ? "next" : "", text: i === 0 ? "下一次會議" : dd + " 天後" })));
+      // 最可能的結果：放大顯示
+      card.appendChild(el("div", { cls: "ov-lead" },
+        el("span", { cls: "big", style: "color:" + (kOf(top) === 0 ? "var(--ink)" : color(top).replace(/--(up|dn)-\d/, function (s) { return s.slice(0, -1) + "4"; })), text: pct(dist[top]) }),
+        el("span", { cls: "what" }, el("b", { text: "最可能：" + moveLabel(top, i > 0) }), el("br"),
+          el("span", { text: "目標區間 " + rng(top) }))));
       // 每一種結果各一列：維持、升 1 碼、升 2 碼、升 3 碼…（機率 0.5% 以上才列，且一定列出「維持」）
       var rows = el("div", { cls: "ov-rows" }), show = sortedBuckets(dist, 0.005);
       if (show.indexOf(String(BASE)) < 0 && !show.some(function (b) { return +b === BASE; })) show.push(String(BASE));
@@ -955,7 +964,6 @@ footer p { margin: 0; }
           el("span", { cls: "pv", text: pct0(p) })));
       });
       card.appendChild(rows);
-      card.appendChild(el("div", { cls: "ov-top", text: (i > 0 ? "相對目前累計｜" : "") + "最可能 " + rng(top) }));
       card.addEventListener("click", function () { ST.meeting = m; renderAll(); });
       strip.appendChild(card);
     });
