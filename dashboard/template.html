@@ -2,33 +2,15 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* 版面：上方一列篩選，往下依「結論 → 細節」排：下一場會議與利率路徑、各場會議機率表、走勢、變動紀錄與行事曆。 */
+/* 固定深色（護眼）：背景不用純黑、文字不用純白，降低長時間看盤的刺眼感。 */
 :root {
-  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
-  --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10); --wash: rgba(11,11,11,0.045);
-  --hold: #898781;
-  --up-1: #e4857e; --up-2: #c74845; --up-3: #9e3432; --up-4: #762221;      /* 高於目前區間（升息側），越深越多碼 */
-  --dn-1: #6da7ec; --dn-2: #2a78d6; --dn-3: #1c5cab; --dn-4: #104281;      /* 低於目前區間（降息側） */
-  --good: #0ca30c; --warn: #fab219; --crit: #d03b3b; --focus: #2a78d6;
-  --font: system-ui, -apple-system, "Segoe UI", "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
-    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10); --wash: rgba(255,255,255,0.06);
-    --hold: #898781;
-    --up-1: #9e3432; --up-2: #c74845; --up-3: #dd716a; --up-4: #f1aea8;
-    --dn-1: #1c5cab; --dn-2: #2a78d6; --dn-3: #5598e7; --dn-4: #9ec5f4;
-    --good: #0ca30c; --warn: #fab219; --crit: #d03b3b; --focus: #5598e7;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
-  --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10); --wash: rgba(255,255,255,0.06);
-  --hold: #898781;
-  --up-1: #9e3432; --up-2: #c74845; --up-3: #dd716a; --up-4: #f1aea8;
-  --dn-1: #1c5cab; --dn-2: #2a78d6; --dn-3: #5598e7; --dn-4: #9ec5f4;
+  --page: #111417; --surface: #191d22; --raise: #20252b; --ink: #e4e2dc; --ink-2: #b3b1aa; --muted: #85837d;
+  --grid: #262b31; --axis: #363c43; --border: rgba(255,255,255,0.08); --wash: rgba(255,255,255,0.06);
+  --hold: #7d7b76;
+  --up-1: #9e3432; --up-2: #c74845; --up-3: #dd716a; --up-4: #f1aea8;      /* 高於目前區間（升息側），越亮越多碼 */
+  --dn-1: #1c5cab; --dn-2: #2a78d6; --dn-3: #5598e7; --dn-4: #9ec5f4;      /* 低於目前區間（降息側） */
   --good: #0ca30c; --warn: #fab219; --crit: #d03b3b; --focus: #5598e7;
+  --font: system-ui, -apple-system, "Segoe UI", "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
   color-scheme: dark;
 }
 body { background: var(--page); color: var(--ink); font-family: var(--font); font-size: 14px; line-height: 1.55; }
@@ -73,6 +55,17 @@ button:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-vi
 .legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
 .legend .ln { display: inline-block; width: 14px; height: 2px; border-radius: 1px; margin-right: 5px; vertical-align: 3px; }
 .kv { color: var(--ink-2); font-size: 13px; margin: 10px 0 0; }
+.odds { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 8px; margin-top: 4px; }
+.odd .chg { font-size: 11px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.odd { position: relative; background: var(--raise); border: 1px solid var(--border); border-radius: 8px; padding: 10px 10px 8px;
+  display: flex; flex-direction: column; gap: 1px; min-width: 0; overflow: hidden; cursor: default; }
+.odd .bar { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+.odd .lab { font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+.odd .val { font-size: 20px; font-weight: 650; line-height: 1.25; }
+.odd .rng { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.odd.lead { border-color: color-mix(in srgb, var(--ink) 35%, transparent); }
+.odd.lead .lab { color: var(--ink); font-weight: 600; }
+.odd.nil .val { color: var(--muted); }
 .chart { position: relative; width: 100%; }
 .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
 .chart text { font-family: var(--font); fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
@@ -85,7 +78,11 @@ table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nu
 th, td { padding: 6px 8px; text-align: right; white-space: nowrap; font-size: 13px; }
 th { color: var(--muted); font-weight: 500; font-size: 12px; }
 th:first-child, td:first-child { text-align: left; }
-.matrix th.cur { color: var(--ink); font-weight: 650; }
+.matrix th.col { vertical-align: bottom; }
+.matrix th.col .mv { display: block; color: var(--ink); font-size: 12px; font-weight: 600; padding-bottom: 3px; margin-bottom: 3px;
+  border-bottom: 2px solid; white-space: nowrap; }
+.matrix th.col .rg { display: block; font-size: 11px; }
+.matrix th.cur .rg { color: var(--ink-2); }
 .matrix td.cell { border-radius: 4px; background-clip: padding-box; border: 1px solid var(--surface); cursor: default; position: relative; }
 .matrix td.cell.zero { color: var(--muted); }
 .matrix tr.sel td:first-child, .matrix tr.sel th:first-child { font-weight: 650; }
@@ -431,11 +428,31 @@ footer p { margin: 0; }
     Array.prototype.forEach.call(bar.children, function (blk) {            // 放得下才印數字
       if (blk.clientWidth >= 52) blk.textContent = blk.dataset.label;
     });
-    var lg = el("ul", { cls: "legend" });
-    bks.forEach(function (b) {
-      lg.appendChild(el("li", null, el("span", { cls: "sw", style: "background:" + color(b) }), moveLabel(b, cumulative) + "（" + rng(b) + "）"));
+    // 各結果的機率：固定列出降息 1 碼、維持不變、升息 1 碼、升息 2 碼，其他有機率的區間也補上
+    var want = {}, k;
+    for (k = -1; k <= 2; k++) want[BASE + 25 * k] = 1;
+    Object.keys(dist).forEach(function (b) { if (dist[b] >= 0.0005) want[+b] = 1; });
+    var odds = el("div", { cls: "odds", role: "list", "aria-label": "各結果的機率" });
+    Object.keys(want).map(Number).sort(function (a, b) { return a - b; }).forEach(function (b) {
+      var p = dist[b] || 0, top1 = String(b) === String(top);
+      var tile = el("div", { cls: "odd" + (top1 ? " lead" : "") + (p < 0.0005 ? " nil" : ""), role: "listitem", tabindex: "0" });
+      tile.appendChild(el("span", { cls: "bar", style: "background:" + color(b) }));
+      tile.appendChild(el("span", { cls: "lab", text: moveLabel(b, cumulative) }));
+      tile.appendChild(el("span", { cls: "val", text: pct(p) }));
+      tile.appendChild(el("span", { cls: "rng", text: rng(b) }));
+      if (ref) {
+        var dd2 = p - (ref[b] || 0);
+        tile.appendChild(el("span", { cls: "chg", text: "較" + (ST.compare === "d1" ? "前一定盤" : CMP[ST.compare].name) + " " +
+          (Math.abs(dd2) < 0.0005 ? "持平" : (dd2 > 0 ? "▲ " : "▼ ") + Math.abs(dd2 * 100).toFixed(1)) }));
+      }
+      bindTip(tile, function () {
+        var rows = [{ color: color(b), value: pct(p), name: "現在" }];
+        if (ref) rows.push({ value: pct(ref[b] || 0), name: cmpName() });
+        return [moveLabel(b, cumulative) + "　" + rng(b), rows];
+      });
+      odds.appendChild(tile);
     });
-    box.appendChild(lg);
+    box.appendChild(odds);
     var x = (NOW.x || {})[m];
     if (x) {
       var steps = (x[1] - x[0]) / 0.25;
@@ -552,15 +569,16 @@ footer p { margin: 0; }
   // ───── 會議 × 區間 ─────
   function renderMatrix() {
     var host = clear($("matrix-body")), e = cmpEntry(), seen = {};
-    $("matrix-hint").textContent = "每一列是一場會議、每一欄是會議後的目標利率區間。顏色越深機率越高；紅色是高於目前區間、藍色是低於。點一列可以切換上面的會議。";
+    $("matrix-hint").textContent = "每一列是一場會議、每一欄是會議後的目標利率區間；欄位上方標的是相對目前區間（" + rng(BASE) + "）累計升降幾碼。顏色越深機率越高，紅色是升息、藍色是降息。點一列可以切換上面的會議。";
     if (!MEETINGS.length) { host.appendChild(el("p", { cls: "empty", text: "目前沒有資料。" })); return; }
     MEETINGS.forEach(function (m) { Object.keys(NOW.m[m]).forEach(function (b) { if (NOW.m[m][b] >= 0.005) seen[b] = 1; }); });
     seen[BASE] = 1;
     var cols = Object.keys(seen).sort(function (a, b) { return a - b; });
     var tb = el("table", { cls: "matrix" }), hr = el("tr", null, el("th", { scope: "col", text: "會議" }));
     cols.forEach(function (b) {
-      var th = el("th", { scope: "col", text: rng(b).replace("%", "") });
-      if (+b === BASE) { th.className = "cur"; th.title = "目前的目標區間"; th.appendChild(el("div", { style: "font-size:10px;font-weight:500", text: "目前" })); }
+      var kk = kOf(b), mv = kk === 0 ? "維持" : (kk > 0 ? "升 " + kk + " 碼" : "降 " + (-kk) + " 碼");
+      var th = el("th", { scope: "col", cls: "col" + (+b === BASE ? " cur" : ""), title: (kk === 0 ? "目前的目標區間" : "相對目前區間累計" + mv) },
+        el("span", { cls: "mv", style: "border-color:" + color(b), text: mv }), el("span", { cls: "rg", text: rng(b).replace("%", "") }));
       hr.appendChild(th);
     });
     tb.appendChild(el("thead", null, hr));
