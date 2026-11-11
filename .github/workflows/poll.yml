@@ -66,4 +66,5 @@ jobs:
 
       - name: 發佈 GitHub Pages
         if: steps.poll.outputs.changed == 'true'
+        continue-on-error: true      # 還沒到 Settings → Pages 選「GitHub Actions」時，只有這步失敗，通知照常
         uses: actions/deploy-pages@v4
