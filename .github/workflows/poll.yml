@@ -5,9 +5,11 @@ on:
     # 每 10 分鐘（:03、:13…），避開整點的排程尖峰。休市時程式會自己降低抓取頻率。
     # 注意：GitHub 的排程是「盡力而為」，負載高時可能延遲很久甚至略過。
     - cron: "3,13,23,33,43,53 * * * *"
-  # 備援：有電腦 24 小時開機的人，可以定時把 main 的最新 commit 推到 tick 分支來觸發（見 README）
-  push:
-    branches: [tick]
+  # 備援：有電腦 24 小時開機的人，可以定時把 main 的最新 commit 推到 tick 分支來觸發（見 README）。
+  # tick 分支先啟動「觸發更新」，它結束後這裡以 main 分支的身分執行。
+  workflow_run:
+    workflows: ["觸發更新"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:

@@ -1,0 +1,17 @@
+name: 觸發更新
+
+# 備援觸發：把 main 的最新 commit 推到 tick 分支，就會啟動這個工作；
+# 它結束後，「更新利率機率」會以 main 分支的身分執行（GitHub Pages 只允許 main 發佈）。
+on:
+  push:
+    branches: [tick]
+
+permissions:
+  contents: read
+
+jobs:
+  tick:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - run: echo "觸發更新利率機率"
