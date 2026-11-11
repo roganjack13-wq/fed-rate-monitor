@@ -78,6 +78,14 @@ button:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-vi
 .ov-cols .v.hi { color: var(--ink); }
 .ov-bar { display: flex; gap: 2px; height: 8px; }
 .ov-bar span { border-radius: 2px; min-width: 2px; }
+.ov-rows { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+.ov-row { display: grid; grid-template-columns: 58px minmax(0, 1fr) 46px; align-items: center; gap: 8px; font-size: 12px; }
+.ov-row .nm { color: var(--ink-2); white-space: nowrap; }
+.ov-row .track { height: 6px; border-radius: 3px; background: var(--wash); overflow: hidden; }
+.ov-row .fill { display: block; height: 100%; border-radius: 3px; }
+.ov-row .pv { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ov-row.top1 .nm, .ov-row.top1 .pv { color: var(--ink); font-weight: 700; }
+.ov-row.z .pv { color: var(--muted); font-weight: 500; }
 .ov-top { font-size: 12px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* 機率變化比較 */
 .cmp td.up { color: var(--up-4); } .cmp td.dn { color: var(--dn-4); } .cmp td.flat { color: var(--muted); }
@@ -174,17 +182,26 @@ footer p { margin: 0; }
     <div class="ov-strip" id="ov-strip" role="list"></div>
   </article>
 
+
   <section class="grid2">
     <article class="card" id="hero" aria-labelledby="hero-title">
       <h2 id="hero-title">這場會議後的目標利率</h2>
       <div id="hero-body"></div>
     </article>
-    <article class="card" id="compare" aria-labelledby="compare-title">
-      <h2 id="compare-title">機率變化比較</h2>
-      <p class="hint" id="compare-hint"></p>
-      <div class="scroll" id="compare-body"></div>
+    <article class="card" id="path" aria-labelledby="path-title">
+      <h2 id="path-title">利率路徑</h2>
+      <p class="hint">每場會議後的預期利率（各區間中點依機率加權）。灰色帶是目前的目標區間。</p>
+      <div class="chart" id="path-chart"></div>
+      <ul class="legend" id="path-legend"></ul>
+      <details><summary>表格</summary><div class="scroll" id="path-table"></div></details>
     </article>
   </section>
+
+  <article class="card" id="compare" aria-labelledby="compare-title">
+    <h2 id="compare-title">機率變化比較</h2>
+    <p class="hint" id="compare-hint"></p>
+    <div class="scroll" id="compare-body"></div>
+  </article>
 
   <article class="card" id="private" hidden aria-labelledby="private-title">
     <h2 id="private-title">變動摘要（僅私人版）</h2>
@@ -198,20 +215,6 @@ footer p { margin: 0; }
     <ul class="legend" id="matrix-legend" style="margin-top:10px"></ul>
   </article>
 
-  <section class="grid2 even">
-    <article class="card" id="path" aria-labelledby="path-title">
-      <h2 id="path-title">利率路徑</h2>
-      <p class="hint">每場會議後的預期利率（各區間中點依機率加權）。灰色帶是目前的目標區間。</p>
-      <div class="chart" id="path-chart"></div>
-      <ul class="legend" id="path-legend"></ul>
-      <details><summary>表格</summary><div class="scroll" id="path-table"></div></details>
-    </article>
-    <article class="card" aria-labelledby="upcoming-title">
-      <h2 id="upcoming-title">接下來的事件</h2>
-      <p class="hint">美國重要數據與聯準會官員談話，台北時間。</p>
-      <ul class="list scrolly" id="upcoming"></ul>
-    </article>
-  </section>
 
   <article class="card" id="trend" aria-labelledby="trend-title">
     <h2 id="trend-title">機率走勢</h2>
@@ -221,11 +224,19 @@ footer p { margin: 0; }
     <details><summary>表格</summary><div class="scroll" id="trend-table"></div></details>
   </article>
 
-  <article class="card" aria-labelledby="changes-title">
-    <h2 id="changes-title">變動紀錄</h2>
-    <p class="hint">達到通知門檻的變動，以及時間對得上的數據、談話與新聞標題。</p>
-    <ul class="list" id="changes"></ul>
-  </article>
+
+  <section class="grid2 even">
+    <article class="card" aria-labelledby="changes-title">
+      <h2 id="changes-title">變動紀錄</h2>
+      <p class="hint">達到通知門檻的變動，以及時間對得上的數據、談話與新聞標題。</p>
+      <ul class="list" id="changes"></ul>
+    </article>
+    <article class="card" aria-labelledby="upcoming-title">
+      <h2 id="upcoming-title">接下來的事件</h2>
+      <p class="hint">美國重要數據與聯準會官員談話，台北時間。</p>
+      <ul class="list scrolly" id="upcoming"></ul>
+    </article>
+  </section>
 
   <footer id="footer"></footer>
 </div>
@@ -933,17 +944,18 @@ footer p { margin: 0; }
         "aria-pressed": String(m === ST.meeting), "aria-label": fmtDay(m) + " 會議，" + GROUPS.map(function (x) { return x.name + " " + pct0(g[x.key]); }).join("，") });
       card.appendChild(el("div", { cls: "ov-date" }, el("b", { text: m.slice(0, 4) + "/" + m.slice(5).replace("-", "/") }),
         el("span", { cls: i === 0 ? "next" : "", text: i === 0 ? "下一次會議" : dd + " 天後" })));
-      var cols = el("div", { cls: "ov-cols" }), best = GROUPS.reduce(function (a, x) { return g[x.key] > g[a.key] ? x : a; }, GROUPS[0]);
-      GROUPS.forEach(function (x) {
-        var v = g[x.key];
-        cols.appendChild(el("div", null, el("div", { cls: "k", text: x.name }),
-          el("div", { cls: "v" + (v < 0.0005 ? " z" : (x === best ? " hi" : "")), text: pct0(v) })));
+      // 每一種結果各一列：維持、升 1 碼、升 2 碼、升 3 碼…（機率 0.5% 以上才列，且一定列出「維持」）
+      var rows = el("div", { cls: "ov-rows" }), show = sortedBuckets(dist, 0.005);
+      if (show.indexOf(String(BASE)) < 0 && !show.some(function (b) { return +b === BASE; })) show.push(String(BASE));
+      show.sort(function (a, b) { return a - b; }).forEach(function (b) {
+        var p = dist[b] || 0, isTop = String(b) === String(top);
+        rows.appendChild(el("div", { cls: "ov-row" + (isTop ? " top1" : "") + (p < 0.0005 ? " z" : ""), title: rng(b) },
+          el("span", { cls: "nm", text: moveLabel(b, i > 0).replace("累計", "") }),
+          el("span", { cls: "track" }, el("span", { cls: "fill", style: "width:" + Math.max(p > 0.0005 ? 2 : 0, p * 100) + "%;background:" + color(b) })),
+          el("span", { cls: "pv", text: pct0(p) })));
       });
-      card.appendChild(cols);
-      var bar = el("div", { cls: "ov-bar", "aria-hidden": "true" });
-      sortedBuckets(dist, 0.003).forEach(function (b) { bar.appendChild(el("span", { style: "flex:" + dist[b] + " 1 0;background:" + color(b) })); });
-      card.appendChild(bar);
-      card.appendChild(el("div", { cls: "ov-top", title: pct(dist[top]), text: "最可能：" + moveLabel(top, i > 0) + "（" + rng(top) + "）" }));
+      card.appendChild(rows);
+      card.appendChild(el("div", { cls: "ov-top", text: (i > 0 ? "相對目前累計｜" : "") + "最可能 " + rng(top) }));
       card.addEventListener("click", function () { ST.meeting = m; renderAll(); });
       strip.appendChild(card);
     });
@@ -959,19 +971,31 @@ footer p { margin: 0; }
     $("compare-hint").textContent = e ? "現在的機率與「" + cmpName() + "」相比（百分點）。點一列切換會議。"
       : "比較用的定盤資料還在累積。";
     if (!MEETINGS.length) return;
+    // 欄位：所有會議（現在或比較基準）出現過 0.5% 以上的利率區間，逐一列出升幾碼
+    var seenB = {}; seenB[BASE] = 1;
+    MEETINGS.forEach(function (m) {
+      [NOW.m[m], e && e.m[m]].forEach(function (d) { if (d) for (var b in d) if (d[b] >= 0.005) seenB[b] = 1; });
+    });
+    var cols = Object.keys(seenB).map(Number).sort(function (a, b) { return a - b; });
     var tb = el("table", { cls: "plain cmp" }), hr = el("tr", null, el("th", { text: "會議" }));
-    GROUPS.forEach(function (x) { hr.appendChild(el("th", { text: x.name })); });
+    cols.forEach(function (b) {
+      var kk = kOf(b);
+      hr.appendChild(el("th", { title: rng(b), text: kk === 0 ? "維持" : (kk > 0 ? "升 " + kk + " 碼" : "降 " + (-kk) + " 碼") }));
+    });
     hr.appendChild(el("th", { text: "預期利率" }));
     tb.appendChild(el("thead", null, hr));
     var body = el("tbody");
     MEETINGS.forEach(function (m) {
-      var now = grouped(NOW.m[m]), ref = e && e.m[m] ? grouped(e.m[m]) : null;
+      var nowD = NOW.m[m], refD = e && e.m[m] ? e.m[m] : null;
       var tr = el("tr", m === ST.meeting ? { cls: "sel" } : null, el("td", { text: fmtDay(m) }));
-      GROUPS.forEach(function (x) {
-        var td = el("td"), d = ref ? now[x.key] - ref[x.key] : null;
-        if (d === null) { td.appendChild(el("span", { cls: "now", text: pct0(now[x.key]) })); }
-        else if (Math.abs(d) < 0.0005) { td.className = "flat"; td.appendChild(el("span", { cls: "now", text: pct0(now[x.key]) })); td.appendChild(document.createTextNode("持平")); }
-        else { td.appendChild(el("span", { cls: "now", text: pct0(now[x.key]) })); td.appendChild(document.createTextNode((d > 0 ? "▲" : "▼") + Math.abs(d * 100).toFixed(1))); }
+      cols.forEach(function (b) {
+        var v = nowD[b] || 0, d = refD ? v - (refD[b] || 0) : null, td = el("td");
+        if (v < 0.0005 && (d === null || Math.abs(d) < 0.0005)) { td.className = "flat"; td.textContent = "–"; tr.appendChild(td); return; }
+        td.appendChild(el("span", { cls: "now", text: pct0(v) }));
+        if (d !== null) {
+          if (Math.abs(d) < 0.0005) { td.className = "flat"; td.appendChild(document.createTextNode("持平")); }
+          else td.appendChild(document.createTextNode((d > 0 ? "▲" : "▼") + Math.abs(d * 100).toFixed(1)));
+        }
         tr.appendChild(td);
       });
       var mNow = expMid(NOW.m[m]), mRef = e && e.m[m] ? expMid(e.m[m]) : null, tdR = el("td");
