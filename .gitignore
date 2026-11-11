@@ -1,0 +1,17 @@
+# 執行期資料與產出（絕對不進 repo）
+data/
+out/
+site/
+state/
+private/
+config.local.json
+*.log
+*.lock
+*.tmp
+__pycache__/
+*.pyc
+.env
+.env.*
+# 本機專用說明
+CLAUDE.md
+.claude/

@@ -1,0 +1,69 @@
+name: 更新利率機率
+
+on:
+  schedule:
+    # 每 10 分鐘（:03、:13…），避開整點的排程尖峰。休市時程式會自己降低抓取頻率。
+    - cron: "3-59/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write     # 把狀態存到 state 分支
+  pages: write        # 發佈 GitHub Pages
+  id-token: write
+
+concurrency:          # 同時只跑一個，避免兩個工作互相蓋掉狀態
+  group: poll
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 取回上次的狀態（state 分支）
+        uses: actions/checkout@v4
+        continue-on-error: true      # 第一次執行還沒有這個分支
+        with:
+          ref: state
+          path: state
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 單元測試
+        run: python -X utf8 -m unittest discover -s tests -t .
+
+      - name: 輪詢
+        id: poll
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -X utf8 poll.py --ci --variant public --data-dir state/data --out-dir site
+
+      - name: 儲存狀態（state 分支只保留一個 commit）
+        if: always()
+        run: |
+          mkdir -p state/data
+          cd state
+          rm -rf .git
+          git init -q -b state
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data
+          git commit -q -m "state $(date -u '+%Y-%m-%d %H:%M')" || exit 0
+          git push -q --force "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" state:state
+
+      - name: 準備網頁
+        if: steps.poll.outputs.changed == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: 發佈 GitHub Pages
+        if: steps.poll.outputs.changed == 'true'
+        uses: actions/deploy-pages@v4

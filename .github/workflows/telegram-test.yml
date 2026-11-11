@@ -1,0 +1,25 @@
+name: 測試 Telegram（查 chat id）
+
+# 手動執行（Actions → 測試 Telegram → Run workflow）：
+# - 只設了 TELEGRAM_BOT_TOKEN：bot 會私訊告訴你 chat id（執行紀錄只印「已傳到幾個對話」，不會印出 id）
+# - 兩個 Secrets 都設好了：送一則測試訊息
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 查 chat id／送測試訊息
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -X utf8 tools/telegram_chatid.py

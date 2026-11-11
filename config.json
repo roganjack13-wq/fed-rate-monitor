@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "meetings": [
+    "2026-01-28", "2026-03-18", "2026-04-29", "2026-06-17",
+    "2026-07-29", "2026-09-16", "2026-10-28", "2026-12-09",
+    "2027-01-27", "2027-03-17", "2027-04-28", "2027-06-09",
+    "2027-07-28", "2027-09-15", "2027-10-27", "2027-12-08",
+    "2028-01-26"
+  ],
+  "quote_source": "yahoo",
+  "user_agent": "fed-rate-monitor/0.1",
+  "local_utc_offset_hours": 8,
+  "poll": {
+    "thin_hours": 6,
+    "closed_refresh_min": 120
+  },
+  "alert": {
+    "meetings": 2,
+    "threshold_pp": 5.0,
+    "flip_margin_pp": 2.0,
+    "event_threshold_pp": 2.0,
+    "event_after_min": 10,
+    "event_until_min": 45,
+    "confirm_polls": 2,
+    "cooldown_min": 60,
+    "max_per_day": 8,
+    "cross_check_bp": 2.0,
+    "fail_after": 3
+  },
+  "summary": {
+    "enabled": true,
+    "time": "07:30",
+    "weekdays": [1, 2, 3, 4, 5]
+  },
+  "quiet_hours": {
+    "start": "00:00",
+    "end": "07:00",
+    "mode": "silent"
+  },
+  "news": {
+    "zh": "聯準會 OR Fed OR 升息 OR 降息 OR CPI OR 非農",
+    "en": "Federal Reserve OR FOMC OR CPI OR payrolls",
+    "sources_allow": [
+      "鉅亨", "經濟日報", "工商時報", "中央社", "聯合新聞網", "MoneyDJ", "自由財經", "自由時報",
+      "中時新聞網", "Yahoo", "公視", "財訊", "天下", "商業周刊", "今周刊", "數位時代", "TechNews", "科技新報",
+      "Reuters", "CNBC", "Bloomberg", "Wall Street Journal", "WSJ", "AP News", "Associated Press",
+      "MarketWatch", "Barron", "Financial Times", "Fortune", "Axios", "The New York Times"
+    ],
+    "skip_words": [
+      "買進", "賣出", "做多", "做空", "放空", "目標價", "停損", "停利", "進場", "出場",
+      "加碼", "減碼", "布局", "佈局", "看多", "看空", "飆股", "必買", "獲利了結", "抄底", "搶進"
+    ]
+  },
+  "public": {
+    "show_forecast": false
+  }
+}
